@@ -1,23 +1,15 @@
 const https = require('https');
 
-export default async function handler(req, res) {
-  // Handle CORS
+module.exports = async function(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' });
-  }
+  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   return new Promise((resolve) => {
     const body = JSON.stringify(req.body);
@@ -38,7 +30,11 @@ export default async function handler(req, res) {
       let data = '';
       response.on('data', chunk => { data += chunk; });
       response.on('end', () => {
-        resolve(res.status(200).json(JSON.parse(data)));
+        try {
+          resolve(res.status(200).json(JSON.parse(data)));
+        } catch(e) {
+          resolve(res.status(200).send(data));
+        }
       });
     });
 
@@ -49,4 +45,4 @@ export default async function handler(req, res) {
     request.write(body);
     request.end();
   });
-}
+};
