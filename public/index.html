@@ -292,6 +292,19 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
 .shadow-orb { width:44px; height:44px; border-radius:50%; border:1.5px solid var(--accent-amber); display:flex; align-items:center; justify-content:center; font-size:18px; animation:orbPulse 2s ease-in-out infinite; }
 @media(max-width:600px) { .shadow-challengers { grid-template-columns:1fr; } }
 
+
+.history-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:12px; cursor:pointer; transition:border-color 0.2s; }
+.history-card:hover { border-color:var(--border-gold); }
+.history-card-date { font-family:'Inter',sans-serif; font-size:11px; color:var(--text-dim); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:6px; }
+.history-card-challenge { font-family:'EB Garamond',serif; font-size:17px; color:var(--text); line-height:1.5; margin-bottom:8px; }
+.history-card-advisors { font-family:'Inter',sans-serif; font-size:11px; color:var(--gold); letter-spacing:0.03em; }
+.history-card-verdict { font-family:'Inter',sans-serif; font-size:12px; color:var(--text-mid); margin-top:6px; line-height:1.5; }
+
+.history-overlay { position:fixed; top:52px; left:0; right:0; bottom:0; z-index:9999; display:none; flex-direction:column; justify-content:flex-start; }
+.history-overlay.open { display:flex; }
+.history-backdrop { position:fixed; top:52px; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); }
+.history-panel { position:relative; z-index:10000; max-height:80vh; background:var(--surface2); border-radius:0 0 16px 16px; overflow-y:auto; padding:20px; }
+.history-panel-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 16px; }
 </style>
 </head>
 <body>
@@ -384,7 +397,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
   <nav>
     <div class="nav-back" onclick="goTo('home')">← Home</div>
     <div class="nav-logo" style="color:#d4af37;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:0.05em;cursor:pointer">TheCouncil</div>
-    <div style="width:80px"></div>
+    <button onclick="openHistory()" style="background:transparent;border:none;color:var(--text-dim);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px" title="Session History">📜 History</button>
   </nav>
   <div style="display:none;text-align:center;padding:8px 16px;background:rgba(212,175,55,0.08);border-bottom:1px solid var(--border);font-family:'Inter',sans-serif;font-size:11px;color:var(--gold);letter-spacing:0.05em" id="mobileHint">
     Choose advisors below · Or scroll down to enter your challenge and use suggested advisors
@@ -394,7 +407,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
     <div class="panel-left">
       <div class="panel-header">
         <div class="panel-title">Choose Your Advisors <span style="color:var(--gold);font-size:9px">(up to 4)</span></div>
-        <input type="text" class="search-input" id="mindSearch" placeholder="Search name, era, domain…" oninput="filterMinds(this.value)">
+        <input type="text" class="search-input" id="mindSearch" placeholder="Search name, era, domain…" oninput="filterMinds(this.value)" onkeyup="filterMinds(this.value)">
       </div>
       <div class="mind-list" id="mindList">
 
@@ -436,7 +449,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
   <nav>
     <div class="nav-back" onclick="goTo('build')">← Back</div>
     <div class="nav-logo" style="color:#d4af37;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:0.05em;cursor:pointer">TheCouncil</div>
-    <div style="width:80px"></div>
+    <button onclick="openHistory()" style="background:transparent;border:none;color:var(--text-dim);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px" title="Session History">📜 History</button>
   </nav>
   <div class="context-body">
     <div class="context-title">Help the Council know you.</div>
@@ -498,7 +511,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
   <nav>
     <div class="nav-back" onclick="goTo('build', true)">← New Session</div>
     <div class="nav-logo" style="color:#d4af37;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:0.05em;cursor:pointer">TheCouncil</div>
-    <div style="width:80px"></div>
+    <button onclick="openHistory()" style="background:transparent;border:none;color:var(--text-dim);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px" title="Session History">📜 History</button>
   </nav>
   <div class="session-body" id="sessionBody"></div>
 </div>
@@ -690,6 +703,7 @@ function goTo(screen, fresh) {
   document.getElementById('screen-' + screen).classList.add('active');
   window.scrollTo(0, 0);
   if (screen === 'home') clearAllState();
+  if (screen === 'history') renderHistory();
   if (screen === 'build') {
     if (fresh) clearAllState();
     renderBuildScreen();
@@ -881,7 +895,20 @@ function setDomain(id, label) {
   renderDomainQuick();
 }
 
-function filterMinds(val) { renderMindList(val); }
+function filterMinds(val) {
+  renderMindList(val);
+  // Show/hide no results message
+  const items = document.querySelectorAll('.mind-item:not(.hidden)');
+  const list = document.getElementById('mindListItems');
+  if (list && items.length === 0 && val) {
+    if (!document.getElementById('noResults')) {
+      list.insertAdjacentHTML('beforeend', '<div id="noResults" style="padding:20px;text-align:center;color:var(--text-dim);font-family:Inter,sans-serif;font-size:13px">No advisors found for \"' + val + '\"</div>');
+    }
+  } else {
+    const nr = document.getElementById('noResults');
+    if (nr) nr.remove();
+  }
+}
 
 function renderMindList(search) {
   search = search || '';
@@ -1375,6 +1402,8 @@ async function buildConsensus(challenge, council, area) {
         </div>
       </div>`;
   } catch(e) {
+    // Save to history
+    saveSession(challenge, council, p.verdict, p.action);
     document.getElementById('consensusLoading').outerHTML = `<div class="consensus-section"><div class="consensus-next-action"><div class="action-content"><div class="action-content-label">Council Consensus</div><div class="action-content-text" style="color:var(--text-dim);font-style:italic">Could not generate consensus. Please try again.</div></div></div></div>`;
   }
 }
@@ -1857,6 +1886,123 @@ function triggerShadowCouncil() {
 }
 
 
+// ═══════════════════════════════════════
+// SESSION HISTORY
+// ═══════════════════════════════════════
+function saveSession(challenge, council, verdict, action) {
+  try {
+    const sessions = JSON.parse(localStorage.getItem('tc_sessions') || '[]');
+    const session = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
+      challenge: challenge.substring(0, 200),
+      advisors: council.map(m => m.name),
+      verdict: (verdict || '').substring(0, 150),
+      action: (action || '').substring(0, 150)
+    };
+    sessions.unshift(session);
+    // Keep last 50 sessions
+    if (sessions.length > 50) sessions.pop();
+    localStorage.setItem('tc_sessions', JSON.stringify(sessions));
+  } catch(e) { console.log('Could not save session'); }
+}
+
+function renderHistory() {
+  try {
+    const sessions = JSON.parse(localStorage.getItem('tc_sessions') || '[]');
+    const list = document.getElementById('historyList');
+    const empty = document.getElementById('historyEmpty');
+    const clearWrap = document.getElementById('historyClearWrap');
+    const resumeWrap = document.getElementById('resumeSessionWrap');
+    if (!list) return;
+    // Show resume button if there's a saved session
+    if (resumeWrap) resumeWrap.style.display = window._savedSession ? 'block' : 'none';
+
+    if (!sessions.length) {
+      list.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+      if (clearWrap) clearWrap.style.display = 'none';
+      return;
+    }
+
+    if (empty) empty.style.display = 'none';
+    if (clearWrap) clearWrap.style.display = 'block';
+
+    list.innerHTML = sessions.map(s => {
+      return '<div class="history-card">'
+        + '<div class="history-card-date">' + s.date + '</div>'
+        + '<div class="history-card-challenge">' + escapeHtml(s.challenge) + '</div>'
+        + '<div class="history-card-advisors">Council: ' + s.advisors.join(' · ') + '</div>'
+        + (s.action ? '<div class="history-card-verdict">→ ' + escapeHtml(s.action) + '</div>' : '')
+        + '</div>';
+    }).join('');
+  } catch(e) { console.log('Could not load history'); }
+}
+
+function clearHistory() {
+  if (confirm('Clear all session history? This cannot be undone.')) {
+    localStorage.removeItem('tc_sessions');
+    renderHistory();
+  }
+}
+
+
+function resumeSession() {
+  if (!window._savedSession) return;
+  document.getElementById('screen-session').innerHTML = window._savedSession;
+  if (window._savedChallenge) {
+    const ta = document.getElementById('challengeText');
+    if (ta) ta.value = window._savedChallenge;
+  }
+  if (window._savedSelected) selected = window._savedSelected;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-session').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+
+function openHistory() {
+  const overlay = document.getElementById('historyOverlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  renderOverlayHistory();
+}
+
+function closeHistory() {
+  const overlay = document.getElementById('historyOverlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function renderOverlayHistory() {
+  try {
+    const sessions = JSON.parse(localStorage.getItem('tc_sessions') || '[]');
+    const list = document.getElementById('overlayHistoryList');
+    const empty = document.getElementById('overlayHistoryEmpty');
+    const clearWrap = document.getElementById('overlayClearWrap');
+    if (!list) return;
+
+    if (!sessions.length) {
+      list.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+      if (clearWrap) clearWrap.style.display = 'none';
+      return;
+    }
+
+    if (empty) empty.style.display = 'none';
+    if (clearWrap) clearWrap.style.display = 'block';
+
+    list.innerHTML = sessions.map(s => {
+      return '<div class="history-card">'
+        + '<div class="history-card-date">' + s.date + '</div>'
+        + '<div class="history-card-challenge">' + escapeHtml(s.challenge) + '</div>'
+        + '<div class="history-card-advisors">Council: ' + s.advisors.join(' · ') + '</div>'
+        + (s.action ? '<div class="history-card-verdict">→ ' + escapeHtml(s.action) + '</div>' : '')
+        + '</div>';
+    }).join('');
+  } catch(e) { console.log('Could not load history'); }
+}
+
+
 function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1867,5 +2013,49 @@ function escapeHtml(str) {
 initHome();
 </script>
 
+<!-- HISTORY SCREEN -->
+<div id="screen-history" class="screen">
+  <nav>
+    <div class="nav-back" onclick="goTo('home')">← Home</div>
+    <div class="nav-logo" style="color:#d4af37;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:0.05em">TheCouncil</div>
+    <button onclick="openHistory()" style="background:transparent;border:none;color:var(--text-dim);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px" title="Session History">📜 History</button>
+  </nav>
+  <div style="padding:24px 20px;max-width:680px;margin:0 auto">
+    <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px">Your Sessions</div>
+    <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:15px;color:var(--text-dim);margin-bottom:16px">A record of the decisions you've brought to The Council.</div>
+    <div id="resumeSessionWrap" style="display:none;margin-bottom:20px">
+      <button onclick="resumeSession()" style="background:var(--gold);color:#0d0d0f;border:none;border-radius:8px;padding:10px 20px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%">← Resume current session</button>
+    </div>
+    <div id="historyList"></div>
+    <div id="historyEmpty" style="display:none;text-align:center;padding:40px 20px">
+      <div style="font-size:32px;margin-bottom:12px">📜</div>
+      <div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--text-dim)">No sessions yet.</div>
+      <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:14px;color:var(--text-dim);margin-top:6px">Your completed council sessions will appear here.</div>
+    </div>
+    <div id="historyClearWrap" style="display:none;text-align:center;margin-top:32px">
+      <button onclick="clearHistory()" style="background:transparent;border:1px solid rgba(255,80,80,0.3);border-radius:8px;padding:8px 20px;color:rgba(255,80,80,0.6);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer">Clear all history</button>
+    </div>
+  </div>
+</div>
+<!-- HISTORY OVERLAY -->
+<div id="historyOverlay" class="history-overlay">
+  <div class="history-backdrop" onclick="closeHistory()"></div>
+  <div class="history-panel">
+    <div class="history-panel-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text)">Your Sessions</div>
+      <button onclick="closeHistory()" style="background:transparent;border:none;color:var(--text-dim);font-size:20px;cursor:pointer">×</button>
+    </div>
+    <div id="overlayHistoryList"></div>
+    <div id="overlayHistoryEmpty" style="display:none;text-align:center;padding:40px 20px">
+      <div style="font-size:32px;margin-bottom:12px">📜</div>
+      <div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--text-dim)">No sessions yet.</div>
+      <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:14px;color:var(--text-dim);margin-top:6px">Complete a session to see it here.</div>
+    </div>
+    <div id="overlayClearWrap" style="display:none;text-align:center;margin-top:24px;padding-bottom:20px">
+      <button onclick="clearHistory()" style="background:transparent;border:1px solid rgba(255,80,80,0.3);border-radius:8px;padding:8px 20px;color:rgba(255,80,80,0.6);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer">Clear all history</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
