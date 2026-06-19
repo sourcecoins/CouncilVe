@@ -1188,7 +1188,7 @@ async function conveneCouncil() {
 
   goTo('session');
   const body = document.getElementById('sessionBody');
-  const council = selected.map(id => MINDS.find(m => m.id === id));
+  const council = selected.map(id => MINDS.find(m => m.id === id)).filter(Boolean);
 
   body.innerHTML = `
     <div class="session-challenge-card">
@@ -1201,6 +1201,9 @@ async function conveneCouncil() {
   `;
 
   const area = document.getElementById('responseArea');
+
+  // Save session immediately when convened
+  saveSession(challenge, council, '', '');
 
   for (let i = 0; i < council.length; i++) {
     const mind = council[i];
@@ -1302,8 +1305,10 @@ async function conveneCouncil() {
 
   try {
     if (council.length > 1) await buildConsensus(challenge, council, area);
+    else saveSession(challenge, council, '', ''); // Save single advisor sessions too
   } catch(e) {
     console.error('Session error:', e);
+    saveSession(challenge, council, '', ''); // Save even if consensus fails
   } finally {
     const btn = document.getElementById('newSessionBtn');
     if (btn) btn.style.display = 'block';
@@ -1702,7 +1707,7 @@ async function conveneWithChallengers() {
   }
   goTo('session');
   const body = document.getElementById('sessionBody');
-  const council = selected.map(id => MINDS.find(m => m.id === id));
+  const council = selected.map(id => MINDS.find(m => m.id === id)).filter(Boolean);
 
   // Build session card
   let html = '<div class="session-challenge-card">';
@@ -1891,20 +1896,29 @@ function triggerShadowCouncil() {
 // ═══════════════════════════════════════
 function saveSession(challenge, council, verdict, action) {
   try {
+    if (!challenge || challenge.length < 3) return;
     const sessions = JSON.parse(localStorage.getItem('tc_sessions') || '[]');
+    // Handle council being array of objects or array of ids
+    const advisorNames = (council || []).map(m => {
+      if (typeof m === 'string') {
+        const found = MINDS.find(mind => mind.id === m);
+        return found ? found.name : m;
+      }
+      return m.name || m.id || '';
+    }).filter(Boolean);
     const session = {
       id: Date.now(),
       date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
       challenge: challenge.substring(0, 200),
-      advisors: council.map(m => m.name),
+      advisors: advisorNames,
       verdict: (verdict || '').substring(0, 150),
       action: (action || '').substring(0, 150)
     };
     sessions.unshift(session);
-    // Keep last 50 sessions
     if (sessions.length > 50) sessions.pop();
     localStorage.setItem('tc_sessions', JSON.stringify(sessions));
-  } catch(e) { console.log('Could not save session'); }
+    console.log('Session saved:', session.challenge.substring(0,30));
+  } catch(e) { console.log('Could not save session:', e); }
 }
 
 function renderHistory() {
@@ -1964,6 +1978,10 @@ function resumeSession() {
 function openHistory() {
   const overlay = document.getElementById('historyOverlay');
   if (!overlay) return;
+  if (overlay.classList.contains('open')) {
+    overlay.classList.remove('open');
+    return;
+  }
   overlay.classList.add('open');
   renderOverlayHistory();
 }
