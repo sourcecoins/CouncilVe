@@ -15,7 +15,7 @@
   --radius:10px; --radius-sm:6px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth;overflow-x:hidden;}body{overflow-x:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
 .screen{display:none;min-height:100vh;}
 .screen.active{display:flex;flex-direction:column;}
@@ -34,7 +34,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
 .hero-title{font-family:'Playfair Display',serif;font-size:clamp(42px,8vw,80px);font-weight:900;line-height:1.05;color:var(--text);margin-bottom:8px;}
 .hero-title em{font-style:italic;color:var(--gold-light);}
 .hero-sub{font-family:'EB Garamond',serif;font-size:clamp(16px,2.5vw,19px);color:var(--text-mid);max-width:580px;line-height:1.65;margin-bottom:16px;}
-.home-input-wrap{width:100%;max-width:640px;margin:0 auto 10px;}
+.home-input-wrap{width:100%;max-width:640px;margin:0 auto 10px;overflow:hidden;box-sizing:border-box;}
 .home-textarea{width:100%;min-height:140px;background:rgba(28,28,31,0.95);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:18px 20px;color:var(--text);font-family:'EB Garamond',serif;font-size:16px;line-height:1.65;resize:vertical;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
 .home-textarea::placeholder{color:#b0a99f;font-style:italic;}
 .home-textarea:focus{border-color:var(--gold);box-shadow:0 0 32px rgba(212,175,55,0.1);}
@@ -48,7 +48,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
 .home-submit-btn{background:var(--gold);color:#0d0d0f;border:none;border-radius:8px;padding:10px 18px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.03em;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
 .home-submit-btn:hover:not(:disabled){background:var(--gold-light);}
 
-#homeSuggestions{width:100%;max-width:640px;margin:8px auto 0;}
+#homeSuggestions{width:100%;max-width:640px;margin:8px auto 0;overflow:hidden;box-sizing:border-box;}
 .home-quick-picks{display:flex;flex-wrap:wrap;gap:8px;max-width:640px;margin:16px auto 24px;justify-content:center;}
 .home-quick-pill{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:7px 16px;font-family:'Inter',sans-serif;font-size:12px;color:var(--text-dim);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
 .home-quick-pill:hover{border-color:var(--border-gold);color:var(--gold-light);background:var(--gold-dim);}
@@ -105,8 +105,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
 .mind-info-meta{font-size:10px;color:var(--text-dim);margin-top:1px;}
 .mind-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.15s;}
 .mind-item.selected .mind-check{background:var(--gold);border-color:var(--gold);color:#0d0d0f;}
-.suggestion-cards{display:flex;flex-direction:column;gap:7px;margin:10px 0 4px;}
-.suggestion-card{background:var(--gold-dim);border:1px solid var(--border-gold);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:10px;}
+.suggestion-cards{display:flex;flex-direction:column;gap:7px;margin:10px 0 4px;width:100%;overflow:hidden;}
+.suggestion-card{background:var(--gold-dim);border:1px solid var(--border-gold);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:10px;width:100%;box-sizing:border-box;overflow:hidden;}
 .suggestion-card:hover{background:rgba(212,175,55,0.18);}
 .suggestion-card.already-selected{opacity:0.6;cursor:pointer;}
 .suggestion-card-emoji{font-size:18px;flex-shrink:0;margin-top:1px;}
@@ -313,16 +313,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 3
 <div id="screen-home" class="screen active">
   <nav>
     <div class="nav-logo" style="color:#d4af37;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:0.05em;cursor:pointer">TheCouncil</div>
+    <button onclick="openHistory()" style="background:transparent;border:none;color:var(--text-dim);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px" title="Session History">📜 History</button>
   </nav>
 
   <!-- HERO -->
-  <div style="max-width:680px;margin:0 auto;padding:48px 24px 24px;text-align:center">
+  <div style="max-width:680px;margin:0 auto;padding:48px 16px 24px;text-align:center;overflow:hidden;box-sizing:border-box;width:100%">
     <h1 class="hero-title" style="margin-bottom:16px">Before you decide,<br><em>ask The Council.</em></h1>
-    <p style="font-family:'EB Garamond',serif;font-size:17px;color:#c8c4be;line-height:1.7;margin-bottom:32px">
+    <p style="font-family:'EB Garamond',serif;font-size:clamp(14px,4vw,17px);color:#c8c4be;line-height:1.7;margin-bottom:32px;word-wrap:break-word;overflow-wrap:break-word;padding:0 4px">
       <span style="font-style:normal"><span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span></span> answers what.
       <span style="color:#636466">Wikipedia</span> answers who.
       <span style="color:#ab68ff">ChatGPT</span> answers how.<br>
-      <span style="color:#d4af37;font-weight:600">TheCouncil</span> <span style="text-decoration:underline">answers what you should do next.</span>
+      <span style="color:#d4af37;font-weight:600">TheCouncil</span> answers what you should do next.
     </p>
 
     <!-- QUESTION BOX -->
@@ -1202,9 +1203,6 @@ async function conveneCouncil() {
 
   const area = document.getElementById('responseArea');
 
-  // Save session immediately when convened
-  saveSession(challenge, council, '', '');
-
   for (let i = 0; i < council.length; i++) {
     const mind = council[i];
     if (i > 0) area.insertAdjacentHTML('beforeend', '<hr class="response-divider">');
@@ -1305,13 +1303,13 @@ async function conveneCouncil() {
 
   try {
     if (council.length > 1) await buildConsensus(challenge, council, area);
-    else saveSession(challenge, council, '', ''); // Save single advisor sessions too
   } catch(e) {
     console.error('Session error:', e);
-    saveSession(challenge, council, '', ''); // Save even if consensus fails
   } finally {
     const btn = document.getElementById('newSessionBtn');
     if (btn) btn.style.display = 'block';
+    // Save session AFTER everything has loaded
+    setTimeout(() => saveSession(challenge, council, '', ''), 500);
   }
 }
 
@@ -1898,26 +1896,25 @@ function saveSession(challenge, council, verdict, action) {
   try {
     if (!challenge || challenge.length < 3) return;
     const sessions = JSON.parse(localStorage.getItem('tc_sessions') || '[]');
-    // Handle council being array of objects or array of ids
-    const advisorNames = (council || []).map(m => {
-      if (typeof m === 'string') {
-        const found = MINDS.find(mind => mind.id === m);
-        return found ? found.name : m;
-      }
-      return m.name || m.id || '';
-    }).filter(Boolean);
+    const advisorIds = (council || []).map(m => typeof m === 'string' ? m : m.id).filter(Boolean);
+    const advisorNames = advisorIds.map(id => {
+      const found = MINDS.find(mind => mind.id === id);
+      return found ? found.name : id;
+    });
+    const sessionHtml = document.getElementById('sessionBody')?.innerHTML || '';
     const session = {
       id: Date.now(),
       date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
       challenge: challenge.substring(0, 200),
       advisors: advisorNames,
+      advisorIds: advisorIds,
       verdict: (verdict || '').substring(0, 150),
-      action: (action || '').substring(0, 150)
+      action: (action || '').substring(0, 150),
+      html: sessionHtml
     };
     sessions.unshift(session);
-    if (sessions.length > 50) sessions.pop();
+    if (sessions.length > 20) sessions.pop();
     localStorage.setItem('tc_sessions', JSON.stringify(sessions));
-    console.log('Session saved:', session.challenge.substring(0,30));
   } catch(e) { console.log('Could not save session:', e); }
 }
 
@@ -1943,21 +1940,25 @@ function renderHistory() {
     if (clearWrap) clearWrap.style.display = 'block';
 
     list.innerHTML = sessions.map(s => {
-      return '<div class="history-card">'
-        + '<div class="history-card-date">' + s.date + '</div>'
+      return '<div class="history-card" id="hcard-' + s.id + '" style="cursor:pointer">'
+        + '<div class="history-card-date">' + s.date + ' <span style="float:right;font-size:10px;color:var(--gold);letter-spacing:0.05em">TAP TO REVISIT →</span></div>'
         + '<div class="history-card-challenge">' + escapeHtml(s.challenge) + '</div>'
         + '<div class="history-card-advisors">Council: ' + s.advisors.join(' · ') + '</div>'
         + (s.action ? '<div class="history-card-verdict">→ ' + escapeHtml(s.action) + '</div>' : '')
         + '</div>';
     }).join('');
+
+    sessions.forEach(s => {
+      const el = document.getElementById('hcard-' + s.id);
+      if (el) el.addEventListener('click', () => restoreSession(s.id));
+    });
   } catch(e) { console.log('Could not load history'); }
 }
 
 function clearHistory() {
-  if (confirm('Clear all session history? This cannot be undone.')) {
-    localStorage.removeItem('tc_sessions');
-    renderHistory();
-  }
+  localStorage.removeItem('tc_sessions');
+  renderHistory();
+  showToast('History cleared');
 }
 
 
@@ -1976,19 +1977,30 @@ function resumeSession() {
 
 
 function openHistory() {
-  const overlay = document.getElementById('historyOverlay');
-  if (!overlay) return;
-  if (overlay.classList.contains('open')) {
-    overlay.classList.remove('open');
+  const historyScreen = document.getElementById('screen-history');
+  const isActive = historyScreen && historyScreen.classList.contains('active');
+  
+  if (isActive) {
+    // Close - go back to previous screen
+    const prev = window._prevScreen || 'home';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + prev).classList.add('active');
     return;
   }
-  overlay.classList.add('open');
-  renderOverlayHistory();
+
+  // Save current screen before opening history
+  const currentActive = document.querySelector('.screen.active');
+  window._prevScreen = currentActive ? currentActive.id.replace('screen-', '') : 'home';
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  historyScreen.classList.add('active');
+  window.scrollTo(0, 0);
+  renderHistory();
 }
 
 function closeHistory() {
   const overlay = document.getElementById('historyOverlay');
-  if (overlay) overlay.classList.remove('open');
+  if (overlay) { overlay.classList.remove('open'); overlay.style.display = 'none'; }
 }
 
 function renderOverlayHistory() {
@@ -2021,6 +2033,25 @@ function renderOverlayHistory() {
 }
 
 
+function restoreSession(sessionId) {
+  const sessions = JSON.parse(localStorage.getItem('tc_sessions') || '[]');
+  const session = sessions.find(s => s.id == sessionId);
+  if (!session) { showToast('Not found'); return; }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-session').classList.add('active');
+  window.scrollTo(0, 0);
+
+  const body = document.getElementById('sessionBody');
+  if (!body) return;
+
+  const badges = (session.advisors||[]).map(n=>'<div class="session-mind-badge">'+n+'</div>').join('');
+  const action = session.action ? '<div class="consensus-section"><div class="consensus-next-action"><div class="action-arrow">→</div><div class="action-content"><div class="action-content-label">Your Next Action — Today</div><div class="action-content-text">'+escapeHtml(session.action)+'</div></div></div></div>' : '';
+  body.innerHTML = '<div class="session-challenge-card"><div class="session-challenge-label">Your Challenge</div><div class="session-challenge-text">'+escapeHtml(session.challenge)+'</div><div class="session-council-row">'+badges+'</div></div>'
+    + (session.html && session.html.length > 200 ? session.html : action)
+    + '<button class="new-session-btn" style="display:block;margin-top:20px" onclick="openHistory()">← Back to History</button>';
+}
+
 function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -2051,26 +2082,6 @@ initHome();
       <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:14px;color:var(--text-dim);margin-top:6px">Your completed council sessions will appear here.</div>
     </div>
     <div id="historyClearWrap" style="display:none;text-align:center;margin-top:32px">
-      <button onclick="clearHistory()" style="background:transparent;border:1px solid rgba(255,80,80,0.3);border-radius:8px;padding:8px 20px;color:rgba(255,80,80,0.6);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer">Clear all history</button>
-    </div>
-  </div>
-</div>
-<!-- HISTORY OVERLAY -->
-<div id="historyOverlay" class="history-overlay">
-  <div class="history-backdrop" onclick="closeHistory()"></div>
-  <div class="history-panel">
-    <div class="history-panel-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text)">Your Sessions</div>
-      <button onclick="closeHistory()" style="background:transparent;border:none;color:var(--text-dim);font-size:20px;cursor:pointer">×</button>
-    </div>
-    <div id="overlayHistoryList"></div>
-    <div id="overlayHistoryEmpty" style="display:none;text-align:center;padding:40px 20px">
-      <div style="font-size:32px;margin-bottom:12px">📜</div>
-      <div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--text-dim)">No sessions yet.</div>
-      <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:14px;color:var(--text-dim);margin-top:6px">Complete a session to see it here.</div>
-    </div>
-    <div id="overlayClearWrap" style="display:none;text-align:center;margin-top:24px;padding-bottom:20px">
       <button onclick="clearHistory()" style="background:transparent;border:1px solid rgba(255,80,80,0.3);border-radius:8px;padding:8px 20px;color:rgba(255,80,80,0.6);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer">Clear all history</button>
     </div>
   </div>
