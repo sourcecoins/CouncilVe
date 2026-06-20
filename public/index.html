@@ -1902,6 +1902,9 @@ function saveSession(challenge, council, verdict, action) {
       return found ? found.name : id;
     });
     const sessionHtml = document.getElementById('sessionBody')?.innerHTML || '';
+    // Capture the spoken text for every card so audio works after restore
+    const audioMap = {};
+    Object.keys(ttsTextMap).forEach(key => { audioMap[key] = ttsTextMap[key]; });
     const session = {
       id: Date.now(),
       date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
@@ -1910,7 +1913,8 @@ function saveSession(challenge, council, verdict, action) {
       advisorIds: advisorIds,
       verdict: (verdict || '').substring(0, 150),
       action: (action || '').substring(0, 150),
-      html: sessionHtml
+      html: sessionHtml,
+      audioMap: audioMap
     };
     sessions.unshift(session);
     if (sessions.length > 20) sessions.pop();
@@ -2044,6 +2048,11 @@ function restoreSession(sessionId) {
 
   const body = document.getElementById('sessionBody');
   if (!body) return;
+
+  // Restore audio text map so play buttons work on revisited cards
+  if (session.audioMap) {
+    Object.keys(session.audioMap).forEach(key => { ttsTextMap[key] = session.audioMap[key]; });
+  }
 
   const badges = (session.advisors||[]).map(n=>'<div class="session-mind-badge">'+n+'</div>').join('');
   const action = session.action ? '<div class="consensus-section"><div class="consensus-next-action"><div class="action-arrow">→</div><div class="action-content"><div class="action-content-label">Your Next Action — Today</div><div class="action-content-text">'+escapeHtml(session.action)+'</div></div></div></div>' : '';
